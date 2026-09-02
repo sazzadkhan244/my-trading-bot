@@ -2,22 +2,20 @@ import os
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
-    ApplicationBuilder,
-    ContextTypes,
+    Application,
     CommandHandler,
     CallbackQueryHandler,
     MessageHandler,
-    filters
+    filters,
+    ContextTypes
 )
 from dotenv import load_dotenv
 
 # ==========================================
 # ১. এনভায়রনমেন্ট ও লগিং সেটআপ
 # ==========================================
-# .env ফাইল থেকে গোপনীয় টেলিগ্রাম টোকেন লোড করা
 load_dotenv()
 
-# কনসোলে প্রফেশনাল ফরম্যাটে লগ (Error, Info, Warning) ট্র্যাক করার জন্য লগিং কনফিগারেশন
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -26,9 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 # ==========================================
-# ২. ডেটা স্ট্রাকচার ও মার্কেট ওয়াচলিস্ট (Step 1B)
+# ২. ডেটা স্ট্রাকচার ও মার্কেট ওয়াচলিস্ট
 # ==========================================
-# মার্কেটগুলোকে ক্যাটাগরি অনুযায়ী সাজানো হয়েছে, যাতে দেখতে প্রফেশনাল লাগে
 FOREX_MAJORS = [
     "1. EUR/USD [Watchlist]",
     "2. GBP/USD [Watchlist]",
@@ -50,23 +47,17 @@ METALS_AND_CRYPTO = [
 # ৩. কোর টেলিগ্রাম ইঞ্জিন: /start কমান্ড হ্যান্ডলার
 # ==========================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    ইউজার যখন /start লিখবে, তখন এই ফাংশনটি কল হবে।
-    এটি প্রিমিয়াম লুক এবং হোম মেনুর ইনলাইন কিবোর্ড প্রদর্শন করবে।
-    """
     try:
         user_name = update.effective_user.first_name
         
-        # প্রিমিয়াম ও আকর্ষণীয় ওয়েলকাম টেক্সট
         welcome_text = (
             f"স্বাগতম ভাই, **{user_name}**! 🚀\n\n"
             "এটি আপনার **Mastermind Trading Bot (Step 1 - Core & UI)**। "
             "এখানে কোনো কাল্পনিক বা ভুয়া সিগন্যাল দেখানো হয় না। ১০০% স্বচ্ছতা এবং প্রফেশনাল "
-            "ইঞ্জিনিয়ারিং স্ট্যান্ডার্ড বজায় রেখে বট তৈরি করা হচ্ছে।\n\n"
+            "ইঞ্জিনিয়ারিং স্ট্যান্ডার্ড বজায় রেখে বট তৈরি করা হচ্ছে。\n\n"
             "নিচের প্রিমিয়াম মেনু থেকে আপনার কাঙ্ক্ষিত অপশনটি বেছে নিন:"
         )
 
-        # হোম পেজের ইনলাইন কিবোর্ড মেনু
         keyboard = [
             [InlineKeyboardButton("📊 মার্কেট ওয়াচলিস্ট (ক্যাটাগরি অনুযায়ী)", callback_data="show_watchlist")],
             [InlineKeyboardButton("⚙️ রিয়েল সিস্টেম হেলথ ও স্ট্যাটাস", callback_data="system_health")],
@@ -75,7 +66,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        # মেসেজ পাঠানো (Markdown ফরম্যাটে)
         await update.message.reply_text(welcome_text, parse_mode="Markdown", reply_markup=reply_markup)
     
     except Exception as e:
@@ -87,21 +77,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ৪. ইনলাইন বাটন ক্লিক ও নেভিগেশন হ্যান্ডলার
 # ==========================================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    ইউজার ইনলাইন মেনুর যেকোনো বাটনে ক্লিক করলে এই ফাংশনটি কাজ করবে।
-    এখানে ব্যাক বাটন (Back to Home) লজিকও যুক্ত করা হয়েছে যাতে ইউজার আটকে না যায়।
-    """
     query = update.callback_query
     await query.answer()
 
     try:
-        # হোম পেজে ফিরে যাওয়ার কমন ব্যাক বাটন
         back_keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 মূল মেনুতে ফিরে যান", callback_data="back_to_home")]
         ])
 
         if query.data == "show_watchlist":
-            # ক্যাটাগরি অনুযায়ী ওয়াচলিস্ট সাজানো
             forex_str = "\n".join(FOREX_MAJORS)
             crypto_str = "\n".join(METALS_AND_CRYPTO)
             
@@ -116,7 +100,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(text=response_msg, parse_mode="Markdown", reply_markup=back_keyboard)
 
         elif query.data == "system_health":
-            # ১০০% সৎ ও বাস্তবসম্মত সিস্টেম স্ট্যাটাস (কোনো ফেক হাইপ নেই)
             response_msg = (
                 "⚙️ **রিয়েল সিস্টেম হেলথ ও স্ট্যাটাস (Step 1):**\n\n"
                 "• Telegram Core Engine: `ONLINE` (সচল)\n"
@@ -147,7 +130,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(text=response_msg, parse_mode="Markdown", reply_markup=back_keyboard)
 
         elif query.data == "back_to_home":
-            # ব্যাক বাটন ক্লিক করলে আবার মূল হোম মেনুতে ফিরিয়ে নিয়ে যাবে
             welcome_text = (
                 "🏠 **মূল মেনুতে স্বাগতম!**\n\n"
                 "নিচের প্রিমিয়াম অপশনগুলো থেকে আপনার প্রয়োজনীয় সেকশনটি বেছে নিন:"
@@ -169,10 +151,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ৫. বেসিক টেক্সট মেসেজ হ্যান্ডলার
 # ==========================================
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    ইউজার সাধারণ চ্যাট বক্সে কোনো টেক্সট লিখলে তা রিসিভ করবে।
-    এটি কোনো ফেক এআই বা সিগন্যাল জেনারেটর নয়, বরং একটি নিরাপদ মেসেজ প্লেসহোল্ডার।
-    """
     try:
         user_text = update.message.text
         reply_msg = f"আপনার কথাটি নোট করা হলো: \"{user_text}\". (এটি একটি বেসিক চ্যাট প্লেসহোল্ডার মোড)।"
@@ -182,31 +160,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ==========================================
-# ৬. গ্লোবাল এরর হ্যান্ডলার (বট ক্র্যাশ প্রটেকশন)
+# ৬. গ্লোবাল এরর হ্যান্ডলার
 # ==========================================
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
-    """
-    নেটওয়ার্ক ড্রপ, টেলিগ্রাম এপিআই ডাউন বা যেকোনো এক্সেপশন ঘটলে 
-    বটকে পুরোপুরি বন্ধ বা ক্র্যাশ হতে দেবে না, বরং কনসোলে লগ রাখবে।
-    """
     logger.error(f"টেলিগ্রাম আপডেট প্রসেস করার সময় মারাত্মক এক্সেপশন ধরা পড়েছে: {context.error}")
 
 
 # ==========================================
-# ৭. মেইন রান ফাংশন
+# ৭. মেইন রান ফাংশন (Application.builder ব্যবহার করে)
 # ==========================================
 def main():
-    # রেন্ডার বা লোকাল এনভায়রনমেন্ট থেকে টোকেন রিড করা
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     
     if not TOKEN:
         logger.error("টেলিগ্রাম বট টোকেন পাওয়া যায়নি! দয়া করে .env ফাইলে টোকেন কনফিগার করুন।")
         return
 
-    # টেলিগ্রাম অ্যাপ্লিকেশন বিল্ড করা
-    application = ApplicationBuilder().token(TOKEN).build()
+    # টেলিগ্রাম অ্যাপ্লিকেশন বিল্ড করার আধুনিক ও স্টেবল পদ্ধতি
+    application = Application.builder().token(TOKEN).build()
 
-    # কমান্ড, বাটন এবং টেক্সট হ্যান্ডলারগুলো সঠিকভাবে রেজিস্টার করা
+    # হ্যান্ডলারগুলো রেজিস্টার করা
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
@@ -214,10 +187,9 @@ def main():
     # গ্লোবাল এরর হ্যান্ডলার যুক্ত করা
     application.add_error_handler(error_handler)
 
-    # বট পোলিং বা লাইভ মোডে চালু করা
-    logger.info("মাস্টারমাইন্ড ট্রেডিং বট (Step 1 Combined: 1A + 1B) সফলভাবে রান হচ্ছে...")
+    # বট পোলিং শুরু করা
+    logger.info("মাস্টারমাইন্ড ট্রেডিং বট সফলভাবে রান হচ্ছে...")
     application.run_polling()
 
 if __name__ == '__main__':
     main()
-
