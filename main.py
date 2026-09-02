@@ -33,7 +33,7 @@ if GEMINI_KEY:
         "temperature": 0.7,
     }
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="gemini-pro",
         generation_config=generation_config,
         system_instruction="You are Mastermind, an elite, professional Forex and Smart Money Concepts (SMC) trading assistant. Provide clear, risk-aware, and precise trading insights in a supportive tone."
     )
