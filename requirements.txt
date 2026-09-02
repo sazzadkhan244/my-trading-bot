@@ -1,4 +1,4 @@
-python-telegram-bot
+python-telegram-bot==20.7
 yfinance
 aiohttp
 requests
@@ -7,3 +7,4 @@ numpy
 python-dotenv
 scipy
 flask
+google-generativeai
