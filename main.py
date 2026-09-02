@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+from flask import Flask
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
     Application,
@@ -24,7 +26,24 @@ logger = logging.getLogger(__name__)
 
 
 # ==========================================
-# ২. ডেটা স্ট্রাকচার ও মার্কেট ওয়াচলিস্ট
+# ২. ফ্লাস্ক দিয়ে রেন্ডার পোর্ট ফিক্স (Web Service ফ্রি রাখার জন্য)
+# ==========================================
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Mastermind Trading Bot Web Service is Active & Healthy!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+
+# ব্যাকগ্রাউন্ড থ্রেডে ফ্লাস্ক সার্ভার চালু করা যাতে টেলিগ্রাম বটের সাথে কোনো সমস্যা না হয়
+threading.Thread(target=run_flask, daemon=True).start()
+
+
+# ==========================================
+# ৩. ডেটা স্ট্রাকচার ও মার্কেট ওয়াচলিস্ট
 # ==========================================
 FOREX_MAJORS = [
     "1. EUR/USD [Watchlist]",
@@ -44,7 +63,7 @@ METALS_AND_CRYPTO = [
 
 
 # ==========================================
-# ৩. কোর টেলিগ্রাম ইঞ্জিন: /start কমান্ড হ্যান্ডলার
+# ৪. কোর টেলিগ্রাম ইঞ্জিন: /start কমান্ড হ্যান্ডলার
 # ==========================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -74,7 +93,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ==========================================
-# ৪. ইনলাইন বাটন ক্লিক ও নেভিগেশন হ্যান্ডলার
+# ৫. ইনলাইন বাটন ক্লিক ও নেভিগেশন হ্যান্ডলার
 # ==========================================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -148,7 +167,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ==========================================
-# ৫. বেসিক টেক্সট মেসেজ হ্যান্ডলার
+# ৬. বেসিক টেক্সট মেসেজ হ্যান্ডলার
 # ==========================================
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -160,14 +179,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ==========================================
-# ৬. গ্লোবাল এরর হ্যান্ডলার
+# ৭. গ্লোবাল এরর হ্যান্ডলার
 # ==========================================
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"টেলিগ্রাম আপডেট প্রসেস করার সময় মারাত্মক এক্সেপশন ধরা পড়েছে: {context.error}")
 
 
 # ==========================================
-# ৭. মেইন রান ফাংশন (Application.builder ব্যবহার করে)
+# ৮. মেইন রান ফাংশন
 # ==========================================
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -176,20 +195,17 @@ def main():
         logger.error("টেলিগ্রাম বট টোকেন পাওয়া যায়নি! দয়া করে .env ফাইলে টোকেন কনফিগার করুন।")
         return
 
-    # টেলিগ্রাম অ্যাপ্লিকেশন বিল্ড করার আধুনিক ও স্টেবল পদ্ধতি
     application = Application.builder().token(TOKEN).build()
 
-    # হ্যান্ডলারগুলো রেজিস্টার করা
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    # গ্লোবাল এরর হ্যান্ডলার যুক্ত করা
     application.add_error_handler(error_handler)
 
-    # বট পোলিং শুরু করা
     logger.info("মাস্টারমাইন্ড ট্রেডিং বট সফলভাবে রান হচ্ছে...")
     application.run_polling()
 
 if __name__ == '__main__':
     main()
+
