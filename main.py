@@ -1,3 +1,14 @@
+import sys
+import subprocess
+
+# রেন্ডার সার্ভারে প্যাকেজ মিসিং থাকলে অটো ইনস্টল করার সেফটি প্রোটোকল
+required_packages = ['aiohttp', 'yfinance', 'python-telegram-bot']
+for package in required_packages:
+    try:
+        __import__(package if package != 'python-telegram-bot' else 'telegram')
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 import os
 import logging
 import asyncio
@@ -19,10 +30,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# গ্লোবাল অ্যাডমিন স্টেট এবং সেশন ট্র্যাকিং ভেরিয়েবল
 ADMIN_CHAT_ID = None
 
-# হেজ-ফান্ড গ্রেড মাল্টি-অ্যাসেট রিয়েল-টাইম মার্কেট ডেটা ইঞ্জিন
 def get_ultimate_lifechanging_market_data(ticker_symbol):
     try:
         ticker = yf.Ticker(ticker_symbol)
@@ -47,12 +56,11 @@ def get_ultimate_lifechanging_market_data(ticker_symbol):
         logging.error(f"Market Data Fetch Error for {ticker_symbol}: {e}")
         return {"status": "FAILED"}
 
-# ২৪/৭ ব্যাকগ্রাউন্ড অটোমেটেড সুরাশট পুশ অ্যালার্ট ইঞ্জিন
 async def mastermind_background_push_scanner(app):
     global ADMIN_CHAT_ID
     while True:
         try:
-            await asyncio.sleep(300) # প্রতি ৫ মিনিট পর পর ব্যাকগ্রাউন্ডে চেক করবে
+            await asyncio.sleep(300)
             if ADMIN_CHAT_ID:
                 data = get_ultimate_lifechanging_market_data("GC=F")
                 if data["status"] == "SUCCESS":
@@ -70,7 +78,6 @@ async def mastermind_background_push_scanner(app):
         except Exception as e:
             logging.error(f"Mastermind Background Scanner Error: {e}")
 
-# মাস্টার পোর্টাল ও লাইফ-চেঞ্জিং হোম ইন্টারফেস
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global ADMIN_CHAT_ID
     ADMIN_CHAT_ID = update.effective_chat.id
@@ -113,7 +120,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif update.callback_query:
         await update.callback_query.message.reply_text(welcome_banner, parse_mode='HTML', reply_markup=reply_markup)
 
-# মাস্টার বাটন হ্যান্ডলার এবং সমস্ত ফিচারের এ টু জেড বিস্তারিত বিবরণ (Detailed Descriptions)
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -241,7 +247,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.message.reply_text(response, parse_mode='HTML', reply_markup=back_markup)
 
-# মাস্টার স্মার্ট টেক্সট ইঞ্জিন ও প্রবলেম রিকভারি ডায়াগনস্টিক অ্যানালাইজার
 async def smart_text_engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global ADMIN_CHAT_ID
     ADMIN_CHAT_ID = update.effective_chat.id
@@ -249,7 +254,6 @@ async def smart_text_engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text.strip()
     user_text_upper = user_text.upper()
     
-    # সমস্যা, ফেকআউট, লস বা রিকভারি সংক্রান্ত টেক্সট হ্যান্ডেল করার জন্য মাস্টারমাইন্ড প্রোটোকল
     if any(word in user_text.lower() for word in ['problem', 'समस्या', 'সমস্যা', 'loss', 'spread', 'কাজ করছে না', 'ফেক', 'fack', 'লস', 'trade', 'failed', 'error', 'recovery', 'रिकवरी']):
         response = (
             "🛡️ <b>MASTERMIND PROBLEM DIAGNOSTIC & RECOVERY PROTOCOL</b>\n"
@@ -260,7 +264,6 @@ async def smart_text_engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "2. <b>Lot Reduction:</b> রিভেঞ্জ ট্রেডিং (Revenge Trading) এড়াতে পরবর্তী ট্রেডের লট সাইজ ৫০% কমিয়ে দিন।\n"
             "3. <b>Killzone Discipline:</b> পরবর্তী হাই-প্রোবাবিলিটি কিলজোন সেশন (London/New York) শুরু না হওয়া পর্যন্ত নতুন কোনো ট্রেড ওপেন করবেন না।"
         )
-    # কাস্টম সিম্বল বা টিকর লুকআপ ইঞ্জিন
     elif len(user_text) <= 12 and ('=' in user_text or '-' in user_text or user_text.isalpha()):
         ticker_symbol = user_text_upper
         if ticker_symbol == 'GOLD':
@@ -294,7 +297,6 @@ async def smart_text_engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     await update.message.reply_text(response, parse_mode='HTML')
 
-# ছবি বা চার্ট স্ক্রিনশট স্ক্যানার হ্যান্ডলার
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     analysis_text = (
         "📊 <b>MASTERMIND CHART SCREENSHOT SCANNER</b>\n"
@@ -304,7 +306,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(analysis_text, parse_mode='HTML')
 
-# Render সার্ভার ২৪/৭ সচল রাখার জন্য aiohttp ওয়েব হ্যান্ডলার
 async def handle_web(request):
     return web.Response(text="Life-Changing Institutional Trading Engine Running 24/7 at Peak Performance!")
 
@@ -317,7 +318,6 @@ async def web_server():
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
 
-# মেইন আসিনক্রোনাস রান ফাংশন
 async def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
@@ -326,13 +326,11 @@ async def main():
         
     app = ApplicationBuilder().token(TOKEN).build()
     
-    # হ্যান্ডলার রেজিস্ট্রেশন
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), smart_text_engine))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     
-    # ব্যাকগ্রাউন্ড পুশ স্ক্যানার এবং ওয়েব সার্ভার একসাথে চালু করা
     asyncio.create_task(mastermind_background_push_scanner(app))
     await web_server()
     
@@ -346,4 +344,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
 
